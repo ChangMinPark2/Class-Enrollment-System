@@ -22,4 +22,13 @@ public class CourseController {
         courseService.create(userId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body("강의가 생성되었습니다.");
     }
+
+    @PostMapping("/{userId}/courses/{courseId}/open")
+    public ResponseEntity<String> openCourse(
+            @PathVariable Long userId,
+            @PathVariable Long courseId
+    ) {
+        courseService.openCourse(userId, courseId);
+        return ResponseEntity.ok("강의가 오픈되었습니다.");
+    }
 }
