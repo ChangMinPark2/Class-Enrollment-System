@@ -91,4 +91,8 @@ public class Course {
                 .user(user)
                 .build();
     }
+
+    public void open() {
+        this.courseStatus = CourseStatus.OPEN;
+    }
 }
