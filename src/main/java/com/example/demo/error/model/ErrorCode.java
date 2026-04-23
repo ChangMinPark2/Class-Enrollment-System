@@ -9,8 +9,12 @@ import org.springframework.http.HttpStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 public enum ErrorCode {
-    //BadRequest 400 error
-    DUPLICATE_USER_NAME("중복된 이름이 존재합니다.", HttpStatus.BAD_REQUEST);
+    //NotFound 404 error
+    FAIL_NOT_USER("해당 유저를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+    // BadRequest 400
+    INVALID_ROLE("강의 생성은 강사만 가능합니다.", HttpStatus.BAD_REQUEST),
+    INVALID_DATE_RANGE("시작일은 종료일보다 이후일 수 없습니다.", HttpStatus.BAD_REQUEST);
 
     private String message;
     private HttpStatus statusCode;

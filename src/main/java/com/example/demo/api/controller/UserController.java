@@ -20,6 +20,6 @@ public class UserController {
     @PostMapping
     public ResponseEntity<String> create(@Valid @RequestBody UserCreateDto dto) {
         userService.signUp(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body("예약이 성공적으로 생성되었습니다.");
+        return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공하셨습니다.");
     }
 }
