@@ -2,6 +2,7 @@ package com.example.demo.api.service;
 
 import com.example.demo.api.dto.course.CourseCreateDto;
 import com.example.demo.api.dto.course.CourseReadAllDto;
+import com.example.demo.api.dto.course.CourseReadDetailDto;
 import com.example.demo.api.persistence.entity.Course;
 import com.example.demo.api.persistence.entity.CourseStatus;
 import com.example.demo.api.persistence.entity.Role;
@@ -47,7 +48,7 @@ public class CourseService {
         courseRepository.save(course);
     }
 
-    public void openCourse(Long userId, Long courseId) {
+    public void open(Long userId, Long courseId) {
         final User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_USER));
 
@@ -62,7 +63,7 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public CourseReadAllDto readAllCourse(CourseStatus status) {
+    public CourseReadAllDto readAll(CourseStatus status) {
         final List<Course> courses = Optional.ofNullable(status)
                 .map(courseRepository::findAllByCourseStatus)
                 .orElseGet(courseRepository::findAll);
@@ -72,6 +73,14 @@ public class CourseService {
                         .map(Course::toSummaryDto)
                         .toList()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public CourseReadDetailDto read(Long courseId) {
+        final Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_COURSE));
+
+        return course.toDetailDto();
     }
 
     private void validateCreator(User user) {
