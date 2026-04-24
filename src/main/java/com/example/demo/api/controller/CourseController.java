@@ -15,7 +15,7 @@ public class CourseController {
     private final CourseService courseService;
 
     @PostMapping("/{userId}/courses")
-    public ResponseEntity<String> createCourse(
+    public ResponseEntity<String> create(
             @PathVariable Long userId,
             @RequestBody @Valid CourseCreateDto dto
     ) {
@@ -24,11 +24,11 @@ public class CourseController {
     }
 
     @PostMapping("/{userId}/courses/{courseId}/open")
-    public ResponseEntity<String> openCourse(
+    public ResponseEntity<String> open(
             @PathVariable Long userId,
             @PathVariable Long courseId
     ) {
-        courseService.openCourse(userId, courseId);
+        courseService.open(userId, courseId);
         return ResponseEntity.ok("강의가 오픈되었습니다.");
     }
 }

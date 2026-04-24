@@ -1,14 +1,12 @@
 package com.example.demo.api.controller;
 
 import com.example.demo.api.dto.course.CourseReadAllDto;
+import com.example.demo.api.dto.course.CourseReadDetailDto;
 import com.example.demo.api.persistence.entity.CourseStatus;
 import com.example.demo.api.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -18,9 +16,16 @@ public class CourseCommandController {
     private final CourseService courseService;
 
     @GetMapping
-    public ResponseEntity<CourseReadAllDto> readAllCourses(
+    public ResponseEntity<CourseReadAllDto> readAll(
             @RequestParam(required = false) CourseStatus status
     ) {
-        return ResponseEntity.ok(courseService.readAllCourse(status));
+        return ResponseEntity.ok(courseService.readAll(status));
+    }
+
+    @GetMapping("/{courseId}")
+    public ResponseEntity<CourseReadDetailDto> read(
+            @PathVariable Long courseId
+    ) {
+        return ResponseEntity.ok(courseService.read(courseId));
     }
 }
