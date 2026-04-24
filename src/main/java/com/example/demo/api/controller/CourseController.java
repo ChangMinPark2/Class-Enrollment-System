@@ -1,6 +1,6 @@
 package com.example.demo.api.controller;
 
-import com.example.demo.api.dto.CourseCreateDto;
+import com.example.demo.api.dto.course.CourseCreateDto;
 import com.example.demo.api.service.CourseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
