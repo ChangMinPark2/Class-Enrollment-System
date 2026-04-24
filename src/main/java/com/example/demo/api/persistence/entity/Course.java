@@ -1,5 +1,6 @@
 package com.example.demo.api.persistence.entity;
 
+import com.example.demo.api.dto.course.CourseSummaryDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -89,6 +90,17 @@ public class Course {
                 .endedAt(endedAt)
                 .status(CourseStatus.DRAFT)
                 .user(user)
+                .build();
+    }
+
+    public CourseSummaryDto toSummaryDto() {
+        return CourseSummaryDto.builder()
+                .id(this.id)
+                .title(this.title)
+                .price(this.price)
+                .maxCapacity(this.maxCapacity)
+                .currentCapacity(this.currentCapacity)
+                .status(this.courseStatus)
                 .build();
     }
 
