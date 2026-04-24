@@ -1,4 +1,4 @@
-package com.example.demo.api.dto;
+package com.example.demo.api.dto.course;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

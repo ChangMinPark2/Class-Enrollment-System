@@ -1,6 +1,7 @@
 package com.example.demo.api.service;
 
-import com.example.demo.api.dto.CourseCreateDto;
+import com.example.demo.api.dto.course.CourseCreateDto;
+import com.example.demo.api.dto.course.CourseReadAllDto;
 import com.example.demo.api.persistence.entity.Course;
 import com.example.demo.api.persistence.entity.CourseStatus;
 import com.example.demo.api.persistence.entity.Role;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -56,6 +59,19 @@ public class CourseService {
         validateCourseNotEnded(course);
 
         course.open();
+    }
+
+    @Transactional(readOnly = true)
+    public CourseReadAllDto readAllCourse(CourseStatus status) {
+        final List<Course> courses = Optional.ofNullable(status)
+                .map(courseRepository::findAllByCourseStatus)
+                .orElseGet(courseRepository::findAll);
+
+        return new CourseReadAllDto(
+                courses.stream()
+                        .map(Course::toSummaryDto)
+                        .toList()
+        );
     }
 
     private void validateCreator(User user) {
