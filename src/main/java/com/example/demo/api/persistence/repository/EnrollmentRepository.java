@@ -4,6 +4,8 @@ import com.example.demo.api.persistence.entity.Course;
 import com.example.demo.api.persistence.entity.Enrollment;
 import com.example.demo.api.persistence.entity.EnrollmentStatus;
 import com.example.demo.api.persistence.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,14 +18,16 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 
     @Modifying(flushAutomatically = true)
     @Query("""
-        update Enrollment e
-        set e.enrollmentStatus = :cancelledStatus
-        where e.id = :enrollmentId
-        and e.enrollmentStatus = :confirmedStatus
-        """)
+            update Enrollment e
+            set e.enrollmentStatus = :cancelledStatus
+            where e.id = :enrollmentId
+            and e.enrollmentStatus = :confirmedStatus
+            """)
     int cancelIfConfirmed(
             @Param("enrollmentId") Long enrollmentId,
             @Param("confirmedStatus") EnrollmentStatus confirmedStatus,
             @Param("cancelledStatus") EnrollmentStatus cancelledStatus
     );
+
+    Page<Enrollment> findAllByUser(User user, Pageable pageable);
 }

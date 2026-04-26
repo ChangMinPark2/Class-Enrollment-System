@@ -1,7 +1,7 @@
 package com.example.demo.api.controller;
 
-import com.example.demo.api.dto.EnrollmentCreateDto;
-import com.example.demo.api.service.EnrollmentService;
+import com.example.demo.api.dto.enrollment.EnrollmentCreateDto;
+import com.example.demo.api.service.EnrollmentCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/enrollments")
 @RequiredArgsConstructor
-public class EnrollmentController {
-    private final EnrollmentService enrollmentService;
+public class EnrollmentCommandController {
+    private final EnrollmentCommandService enrollmentService;
 
     @PostMapping
     public ResponseEntity<String> create(@RequestBody @Valid EnrollmentCreateDto dto) {

@@ -1,6 +1,6 @@
 package com.example.demo.api.service;
 
-import com.example.demo.api.dto.EnrollmentCreateDto;
+import com.example.demo.api.dto.enrollment.EnrollmentCreateDto;
 import com.example.demo.api.persistence.entity.*;
 import com.example.demo.api.persistence.repository.CourseRepository;
 import com.example.demo.api.persistence.repository.EnrollmentRepository;
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class EnrollmentService {
+public class EnrollmentCommandService {
     private final EnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
