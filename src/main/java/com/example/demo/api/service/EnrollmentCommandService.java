@@ -30,7 +30,7 @@ public class EnrollmentCommandService {
 
         validateCourseOpen(course);
         validateCapacity(course);
-        validateAlreadyEnrolled(user, course);
+        validateAlreadyEnrolled(user, course); 
         validateNotCourseOwner(user, course);
 
         final Enrollment enrollment = Enrollment.create(user, course);
@@ -123,7 +123,7 @@ public class EnrollmentCommandService {
 
     private void validateNotCourseOwner(User user, Course course) {
         if (course.getUser().getId().equals(user.getId())) {
-            throw new BadRequestException(ErrorCode.INVALID_ENROLLMENT_OWNER);
+            throw new BadRequestException(ErrorCode.INVALID_SELF_ENROLLMENT);
         }
     }
 
