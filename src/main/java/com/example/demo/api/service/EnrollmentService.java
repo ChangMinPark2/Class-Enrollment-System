@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -53,6 +55,48 @@ public class EnrollmentService {
         enrollment.confirm();
     }
 
+    public void cancel(Long userId, Long enrollmentId) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_USER));
+
+        final Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_ENROLLMENT));
+
+        validateEnrollmentOwner(user, enrollment);
+        validateConfirmed(enrollment);
+        validateCancelPeriod(enrollment);
+
+        final int cancelledCount = enrollmentRepository.cancelIfConfirmed(
+                enrollmentId,
+                EnrollmentStatus.CONFIRMED,
+                EnrollmentStatus.CANCELLED
+        );
+
+        validateCancelSuccess(cancelledCount);
+
+        enrollment.getCourse().decreaseCapacity();
+    }
+
+    private void validateConfirmed(Enrollment enrollment) {
+        if (enrollment.getEnrollmentStatus() != EnrollmentStatus.CONFIRMED) {
+            throw new BadRequestException(ErrorCode.INVALID_ENROLLMENT_CANCEL_STATUS);
+        }
+    }
+
+    private void validateCancelSuccess(int cancelledCount) {
+        if (cancelledCount == 0) {
+            throw new BadRequestException(ErrorCode.INVALID_ENROLLMENT_CANCEL_STATUS);
+        }
+    }
+
+    private void validateCancelPeriod(Enrollment enrollment) {
+        final LocalDateTime deadline = enrollment.getConfirmedAt().plusDays(7);
+
+        if (deadline.isBefore(LocalDateTime.now())) {
+            throw new BadRequestException(ErrorCode.INVALID_CANCEL_PERIOD);
+        }
+    }
+
     private void validateCapacityAvailable(int updatedCount) {
         if (updatedCount == 0) {
             throw new BadRequestException(ErrorCode.INVALID_COURSE_CAPACITY);
@@ -61,7 +105,7 @@ public class EnrollmentService {
 
     private void validateEnrollmentOwner(User user, Enrollment enrollment) {
         if (!enrollment.getUser().getId().equals(user.getId())) {
-            throw new BadRequestException(ErrorCode.INVALID_ENROLLMENT_CONFIRM_OWNER);
+            throw new BadRequestException(ErrorCode.INVALID_ENROLLMENT_OWNER);
         }
     }
 

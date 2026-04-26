@@ -28,4 +28,13 @@ public class EnrollmentController {
         enrollmentService.confirm(userId, enrollmentId);
         return ResponseEntity.ok("결제가 완료되었습니다.");
     }
+
+    @PostMapping("/{enrollmentId}/cancel")
+    public ResponseEntity<String> cancel(
+            @RequestParam Long userId,
+            @PathVariable Long enrollmentId
+    ) {
+        enrollmentService.cancel(userId, enrollmentId);
+        return ResponseEntity.ok("수강 신청이 취소되었습니다.");
+    }
 }

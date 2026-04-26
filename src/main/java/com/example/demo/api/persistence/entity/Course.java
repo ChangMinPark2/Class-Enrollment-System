@@ -122,4 +122,8 @@ public class Course {
     public void open() {
         this.courseStatus = CourseStatus.OPEN;
     }
+
+    public void decreaseCapacity() {
+        this.currentCapacity--;
+    }
 }
