@@ -62,6 +62,25 @@ public class CourseService {
         course.open();
     }
 
+    public void close(Long userId, Long courseId) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_USER));
+
+        final Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_COURSE));
+
+        validateCourseOwner(user, course);
+        validateCloseStatus(course);
+
+        course.close();
+    }
+
+    private void validateCloseStatus(Course course) {
+        if (course.getCourseStatus() != CourseStatus.OPEN) {
+            throw new BadRequestException(ErrorCode.INVALID_COURSE_CLOSE_STATUS);
+        }
+    }
+
     @Transactional(readOnly = true)
     public CourseReadAllDto readAll(CourseStatus status) {
         final List<Course> courses = Optional.ofNullable(status)
