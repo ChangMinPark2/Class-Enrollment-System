@@ -123,6 +123,10 @@ public class Course {
         this.courseStatus = CourseStatus.OPEN;
     }
 
+    public void close() {
+        this.courseStatus = CourseStatus.CLOSED;
+    }
+
     public void decreaseCapacity() {
         this.currentCapacity--;
     }

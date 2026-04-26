@@ -31,4 +31,13 @@ public class CourseCommandController {
         courseService.open(userId, courseId);
         return ResponseEntity.ok("강의가 오픈되었습니다.");
     }
+
+    @PostMapping("/{userId}/courses/{courseId}/close")
+    public ResponseEntity<String> close(
+            @PathVariable Long userId,
+            @PathVariable Long courseId
+    ) {
+        courseService.close(userId, courseId);
+        return ResponseEntity.ok("강의가 마감되었습니다.");
+    }
 }
