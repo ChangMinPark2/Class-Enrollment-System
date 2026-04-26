@@ -1,5 +1,6 @@
 package com.example.demo.api.controller;
 
+import com.example.demo.api.dto.course.CourseStudentReadAllDto;
 import com.example.demo.api.dto.enrollment.EnrollmentReadAllDto;
 import com.example.demo.api.service.EnrollmentReadService;
 import lombok.RequiredArgsConstructor;
@@ -22,5 +23,15 @@ public class EnrollmentReadController {
             Pageable pageable
     ) {
         return ResponseEntity.ok(enrollmentReadService.readAllByUser(userId, pageable));
+    }
+
+    @GetMapping("/{userId}/courses/{courseId}/students")
+    public ResponseEntity<CourseStudentReadAllDto> readStudentsByCourse(
+            @PathVariable Long userId,
+            @PathVariable Long courseId
+    ) {
+        return ResponseEntity.ok(
+                enrollmentReadService.readStudentsByCourse(userId, courseId)
+        );
     }
 }

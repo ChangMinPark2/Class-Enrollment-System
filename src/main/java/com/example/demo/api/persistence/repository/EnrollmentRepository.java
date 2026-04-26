@@ -12,6 +12,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     boolean existsByUserAndCourse(User user, Course course);
@@ -30,4 +32,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     );
 
     Page<Enrollment> findAllByUser(User user, Pageable pageable);
+
+    List<Enrollment> findAllByCourseAndEnrollmentStatus(Course course, EnrollmentStatus enrollmentStatus);
 }

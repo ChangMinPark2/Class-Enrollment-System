@@ -1,5 +1,6 @@
 package com.example.demo.api.persistence.entity;
 
+import com.example.demo.api.dto.course.CourseStudentReadDto;
 import com.example.demo.api.dto.enrollment.EnrollmentReadDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -57,6 +58,16 @@ public class Enrollment {
                 .courseId(this.course.getId())
                 .courseTitle(this.course.getTitle())
                 .price(this.course.getPrice())
+                .status(this.enrollmentStatus)
+                .confirmedAt(this.confirmedAt)
+                .build();
+    }
+
+    public CourseStudentReadDto toStudentReadDto() {
+        return CourseStudentReadDto.builder()
+                .userId(this.user.getId())
+                .userName(this.user.getName())
+                .enrollmentId(this.id)
                 .status(this.enrollmentStatus)
                 .confirmedAt(this.confirmedAt)
                 .build();
