@@ -49,5 +49,10 @@ public class Enrollment {
                 .confirmedAt(null)
                 .build();
     }
+
+    public void confirm() {
+        this.enrollmentStatus = EnrollmentStatus.CONFIRMED;
+        this.confirmedAt = LocalDateTime.now();
+    }
 }
 

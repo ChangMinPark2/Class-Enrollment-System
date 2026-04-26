@@ -6,10 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/enrollments")
@@ -21,5 +18,14 @@ public class EnrollmentController {
     public ResponseEntity<String> create(@RequestBody @Valid EnrollmentCreateDto dto) {
         enrollmentService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body("수강 신청이 완료되었습니다.");
+    }
+
+    @PostMapping("/{enrollmentId}/confirm")
+    public ResponseEntity<String> confirm(
+            @RequestParam Long userId,
+            @PathVariable Long enrollmentId
+    ) {
+        enrollmentService.confirm(userId, enrollmentId);
+        return ResponseEntity.ok("결제가 완료되었습니다.");
     }
 }
