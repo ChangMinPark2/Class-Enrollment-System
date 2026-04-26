@@ -15,7 +15,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     public void signUp(UserCreateDto userCreateDto) {
-        final User user = new User(userCreateDto.name(), userCreateDto.role());
+        final User user = User.create(userCreateDto.name(), userCreateDto.role());
         userRepository.save(user);
     }
 }

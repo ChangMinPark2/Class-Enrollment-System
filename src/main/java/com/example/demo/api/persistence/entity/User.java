@@ -24,8 +24,12 @@ public class User {
     @Column(name = "role", nullable = false)
     private Role role;
 
-    public User(String name, Role role) {
+    private User(String name, Role role) {
         this.name = name;
         this.role = role;
+    }
+
+    public static User create(String name, Role role) {
+        return new User(name, role);
     }
 }
