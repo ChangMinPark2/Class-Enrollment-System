@@ -1,10 +1,7 @@
 package com.example.demo.api.service;
 
 import com.example.demo.api.dto.EnrollmentCreateDto;
-import com.example.demo.api.persistence.entity.Course;
-import com.example.demo.api.persistence.entity.CourseStatus;
-import com.example.demo.api.persistence.entity.Enrollment;
-import com.example.demo.api.persistence.entity.User;
+import com.example.demo.api.persistence.entity.*;
 import com.example.demo.api.persistence.repository.CourseRepository;
 import com.example.demo.api.persistence.repository.EnrollmentRepository;
 import com.example.demo.api.persistence.repository.UserRepository;
@@ -37,6 +34,41 @@ public class EnrollmentService {
         final Enrollment enrollment = Enrollment.create(user, course);
 
         enrollmentRepository.save(enrollment);
+    }
+
+    public void confirm(Long userId, Long enrollmentId) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_USER));
+        final Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_ENROLLMENT));
+        final Course course = enrollment.getCourse();
+
+        validateEnrollmentOwner(user, enrollment);
+        validatePending(enrollment);
+
+        final int updatedCount = courseRepository.increaseCapacityIfAvailable(course.getId());
+
+        validateCapacityAvailable(updatedCount);
+
+        enrollment.confirm();
+    }
+
+    private void validateCapacityAvailable(int updatedCount) {
+        if (updatedCount == 0) {
+            throw new BadRequestException(ErrorCode.INVALID_COURSE_CAPACITY);
+        }
+    }
+
+    private void validateEnrollmentOwner(User user, Enrollment enrollment) {
+        if (!enrollment.getUser().getId().equals(user.getId())) {
+            throw new BadRequestException(ErrorCode.INVALID_ENROLLMENT_CONFIRM_OWNER);
+        }
+    }
+
+    private void validatePending(Enrollment enrollment) {
+        if (enrollment.getEnrollmentStatus() != EnrollmentStatus.PENDING) {
+            throw new BadRequestException(ErrorCode.INVALID_ENROLLMENT_CONFIRM_STATUS);
+        }
     }
 
     private void validateAlreadyEnrolled(User user, Course course) {
