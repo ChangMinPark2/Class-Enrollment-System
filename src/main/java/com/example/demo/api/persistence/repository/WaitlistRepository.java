@@ -6,6 +6,8 @@ import com.example.demo.api.persistence.entity.Waitlist;
 import com.example.demo.api.persistence.entity.WaitlistStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface WaitlistRepository extends JpaRepository<Waitlist, Long> {
     boolean existsByUserAndCourseAndWaitlistStatus(
             User user,
@@ -14,6 +16,11 @@ public interface WaitlistRepository extends JpaRepository<Waitlist, Long> {
     );
 
     boolean existsByCourseAndWaitlistStatus(
+            Course course,
+            WaitlistStatus waitlistStatus
+    );
+
+    Optional<Waitlist> findFirstByCourseAndWaitlistStatusOrderByCreatedAtAsc(
             Course course,
             WaitlistStatus waitlistStatus
     );

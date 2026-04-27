@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -94,7 +95,31 @@ public class EnrollmentCommandService {
 
         validateCancelSuccess(cancelledCount);
 
-        enrollment.getCourse().decreaseCapacity();
+        final Course course = enrollment.getCourse();
+
+        course.decreaseCapacity();
+        promoteNextWaitlist(course);
+    }
+
+    private void promoteNextWaitlist(Course course) {
+        final Optional<Waitlist> optionalWaitlist =
+                waitlistRepository.findFirstByCourseAndWaitlistStatusOrderByCreatedAtAsc(
+                        course,
+                        WaitlistStatus.WAITING
+                );
+
+        if (optionalWaitlist.isEmpty()) {
+            return;
+        }
+
+        final Waitlist waitlist = optionalWaitlist.get();
+        final Enrollment enrollment = Enrollment.create(
+                waitlist.getUser(),
+                course
+        );
+
+        enrollmentRepository.save(enrollment);
+        waitlist.promote(LocalDateTime.now().plusMinutes(10));
     }
 
     private boolean isFull(Course course) {
