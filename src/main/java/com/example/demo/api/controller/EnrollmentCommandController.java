@@ -1,6 +1,7 @@
 package com.example.demo.api.controller;
 
 import com.example.demo.api.dto.enrollment.EnrollmentCreateDto;
+import com.example.demo.api.dto.enrollment.EnrollmentCreateResponseDto;
 import com.example.demo.api.service.EnrollmentCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,10 +15,17 @@ import org.springframework.web.bind.annotation.*;
 public class EnrollmentCommandController {
     private final EnrollmentCommandService enrollmentService;
 
+    //    @PostMapping
+//    public ResponseEntity<String> create(@RequestBody @Valid EnrollmentCreateDto dto) {
+//        enrollmentService.create(dto);
+//        return ResponseEntity.status(HttpStatus.CREATED).body("수강 신청이 완료되었습니다.");
+//    }
     @PostMapping
-    public ResponseEntity<String> create(@RequestBody @Valid EnrollmentCreateDto dto) {
-        enrollmentService.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body("수강 신청이 완료되었습니다.");
+    public ResponseEntity<EnrollmentCreateResponseDto> create(
+            @RequestBody @Valid EnrollmentCreateDto dto
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(enrollmentService.create(dto));
     }
 
     @PostMapping("/{enrollmentId}/confirm")
