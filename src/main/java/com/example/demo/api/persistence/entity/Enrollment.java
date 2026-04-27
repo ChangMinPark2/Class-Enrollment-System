@@ -73,6 +73,10 @@ public class Enrollment {
                 .build();
     }
 
+    public void cancel() {
+        this.enrollmentStatus = EnrollmentStatus.CANCELLED;
+    }
+
     public void confirm() {
         this.enrollmentStatus = EnrollmentStatus.CONFIRMED;
         this.confirmedAt = LocalDateTime.now();

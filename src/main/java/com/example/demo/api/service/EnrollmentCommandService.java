@@ -1,8 +1,8 @@
 package com.example.demo.api.service;
 
 import com.example.demo.api.dto.enrollment.EnrollmentCreateDto;
-import com.example.demo.api.dto.enrollment.EnrollmentCreateResponseDto;
-import com.example.demo.api.dto.enrollment.EnrollmentResponse;
+import com.example.demo.api.dto.enrollment.EnrollmentResponseDto;
+import com.example.demo.api.dto.enrollment.EnrollmentResult;
 import com.example.demo.api.persistence.entity.*;
 import com.example.demo.api.persistence.repository.CourseRepository;
 import com.example.demo.api.persistence.repository.EnrollmentRepository;
@@ -27,7 +27,7 @@ public class EnrollmentCommandService {
     private final CourseRepository courseRepository;
     private final WaitlistRepository waitlistRepository;
 
-    public EnrollmentCreateResponseDto create(EnrollmentCreateDto dto) {
+    public EnrollmentResponseDto create(EnrollmentCreateDto dto) {
         final User user = userRepository.findById(dto.userId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_USER));
         final Course course = courseRepository.findById(dto.courseId())
@@ -43,9 +43,9 @@ public class EnrollmentCommandService {
 
             waitlistRepository.save(waitlist);
 
-            return new EnrollmentCreateResponseDto(
-                    EnrollmentResponse.WAITLIST,
-                    EnrollmentResponse.WAITLIST.getMessage()
+            return new EnrollmentResponseDto(
+                    EnrollmentResult.WAITLIST,
+                    EnrollmentResult.WAITLIST.getMessage()
             );
         }
 
@@ -53,13 +53,13 @@ public class EnrollmentCommandService {
 
         enrollmentRepository.save(enrollment);
 
-        return new EnrollmentCreateResponseDto(
-                EnrollmentResponse.ENROLLMENT,
-                EnrollmentResponse.ENROLLMENT.getMessage()
+        return new EnrollmentResponseDto(
+                EnrollmentResult.ENROLLMENT,
+                EnrollmentResult.ENROLLMENT.getMessage()
         );
     }
 
-    public void confirm(Long userId, Long enrollmentId) {
+    public EnrollmentResponseDto confirm(Long userId, Long enrollmentId) {
         final User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_USER));
         final Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
@@ -68,12 +68,54 @@ public class EnrollmentCommandService {
 
         validateEnrollmentOwner(user, enrollment);
         validatePending(enrollment);
+        validateAlreadyWaiting(user, course);
+
+        if (hasWaitingUser(course) && !isPromotedUser(user, course)) {
+            enrollment.cancel();
+
+            final Waitlist waitlist = Waitlist.create(user, course);
+            waitlistRepository.save(waitlist);
+
+            return new EnrollmentResponseDto(
+                    EnrollmentResult.WAITLIST,
+                    EnrollmentResult.WAITLIST.getMessage()
+            );
+        }
 
         final int updatedCount = courseRepository.increaseCapacityIfAvailable(course.getId());
 
-        validateCapacityAvailable(updatedCount);
+        if (updatedCount == 0) {
+            enrollment.cancel();
+
+            final Waitlist waitlist = Waitlist.create(user, course);
+            waitlistRepository.save(waitlist);
+
+            return new EnrollmentResponseDto(
+                    EnrollmentResult.WAITLIST,
+                    EnrollmentResult.WAITLIST.getMessage()
+            );
+        }
 
         enrollment.confirm();
+        completeWaitlistIfPromoted(user, course);
+
+        return new EnrollmentResponseDto(
+                EnrollmentResult.CONFIRMED,
+                EnrollmentResult.CONFIRMED.getMessage()
+        );
+    }
+
+    private EnrollmentResponseDto registerWaitlist(User user, Course course, Enrollment enrollment) {
+        validateAlreadyWaiting(user, course);
+        enrollment.cancel();
+
+        final Waitlist waitlist = Waitlist.create(user, course);
+        waitlistRepository.save(waitlist);
+
+        return new EnrollmentResponseDto(
+                EnrollmentResult.WAITLIST,
+                EnrollmentResult.WAITLIST.getMessage()
+        );
     }
 
     public void cancel(Long userId, Long enrollmentId) {
@@ -133,6 +175,22 @@ public class EnrollmentCommandService {
         );
     }
 
+    private boolean isPromotedUser(User user, Course course) {
+        return waitlistRepository.existsByUserAndCourseAndWaitlistStatus(
+                user,
+                course,
+                WaitlistStatus.PROMOTED
+        );
+    }
+
+    private void completeWaitlistIfPromoted(User user, Course course) {
+        waitlistRepository.findByUserAndCourseAndWaitlistStatus(
+                user,
+                course,
+                WaitlistStatus.PROMOTED
+        ).ifPresent(Waitlist::complete);
+    }
+
     private void validateAlreadyWaiting(User user, Course course) {
         if (waitlistRepository.existsByUserAndCourseAndWaitlistStatus(
                 user,
@@ -163,12 +221,6 @@ public class EnrollmentCommandService {
         }
     }
 
-    private void validateCapacityAvailable(int updatedCount) {
-        if (updatedCount == 0) {
-            throw new BadRequestException(ErrorCode.INVALID_COURSE_CAPACITY);
-        }
-    }
-
     private void validateEnrollmentOwner(User user, Enrollment enrollment) {
         if (!enrollment.getUser().getId().equals(user.getId())) {
             throw new BadRequestException(ErrorCode.INVALID_ENROLLMENT_OWNER);
@@ -196,12 +248,6 @@ public class EnrollmentCommandService {
     private void validateCourseOpen(Course course) {
         if (course.getCourseStatus() != CourseStatus.OPEN) {
             throw new BadRequestException(ErrorCode.INVALID_ENROLLMENT_STATUS);
-        }
-    }
-
-    private void validateCapacity(Course course) {
-        if (course.getCurrentCapacity() >= course.getMaxCapacity()) {
-            throw new BadRequestException(ErrorCode.INVALID_COURSE_CAPACITY);
         }
     }
 }

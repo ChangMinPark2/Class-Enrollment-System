@@ -24,4 +24,10 @@ public interface WaitlistRepository extends JpaRepository<Waitlist, Long> {
             Course course,
             WaitlistStatus waitlistStatus
     );
+
+    Optional<Waitlist> findByUserAndCourseAndWaitlistStatus(
+            User user,
+            Course course,
+            WaitlistStatus waitlistStatus
+    );
 }
