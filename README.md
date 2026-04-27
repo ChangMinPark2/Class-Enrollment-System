@@ -36,7 +36,7 @@
 
 ```bash
 git clone https://github.com/ChangMinPark2/Class-Enrollment-System.git
-cd <project-directory>
+cd Class-Enrollment-System
 ```
 
 ### 2. 애플리케이션 실행
