@@ -76,9 +76,75 @@ class CourseServiceTest {
         assertThat(savedCourse.getUser()).isEqualTo(creator);
     }
 
+    @Test
+    @DisplayName("존재하지 않는 사용자가 강의 생성을 요청하면 예외가 발생한다")
+    void create_fail_userNotFound() {
+        // GIVEN
+        CourseCreateDto dto = createCourseDto(
+                LocalDate.now(),
+                LocalDate.now().plusDays(10)
+        );
+
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // WHEN & THEN
+        assertThatThrownBy(() -> courseService.create(1L, dto))
+                .isInstanceOf(NotFoundException.class);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("강사가 아닌 사용자가 강의 생성을 요청하면 예외가 발생한다")
+    void create_fail_invalidRole() {
+        // GIVEN
+        User student = createUser(1L, "학생", Role.STUDENT);
+        CourseCreateDto dto = createCourseDto(
+                LocalDate.now(),
+                LocalDate.now().plusDays(10)
+        );
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(student));
+
+        // WHEN & THEN
+        assertThatThrownBy(() -> courseService.create(1L, dto))
+                .isInstanceOf(BadRequestException.class);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @DisplayName("시작일이 종료일보다 늦으면 강의 생성 시 예외가 발생한다")
+    void create_fail_invalidDateRange() {
+        // GIVEN
+        User creator = createUser(1L, "강사", Role.CREATOR);
+        CourseCreateDto dto = createCourseDto(
+                LocalDate.now().plusDays(10),
+                LocalDate.now()
+        );
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(creator));
+
+        // WHEN & THEN
+        assertThatThrownBy(() -> courseService.create(1L, dto))
+                .isInstanceOf(BadRequestException.class);
+
+        verify(courseRepository, never()).save(any());
+    }
+
     private User createUser(Long id, String name, Role role) {
         User user = User.create(name, role);
         ReflectionTestUtils.setField(user, "id", id);
         return user;
+    }
+
+    private CourseCreateDto createCourseDto(LocalDate startedAt, LocalDate endedAt) {
+        return new CourseCreateDto(
+                "스프링 강의",
+                "스프링 강의 설명",
+                10000,
+                30,
+                startedAt,
+                endedAt
+        );
     }
 }
