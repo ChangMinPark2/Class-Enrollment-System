@@ -433,6 +433,7 @@ public class EnrollmentCommandServiceTest {
     @DisplayName("수강 취소 성공 - 확정된 수강 신청이면 취소하고 정원을 감소시킨 뒤 다음 대기자를 승격한다")
     void cancel_success() {
         // Given
+        Course course = createOpenCourse(10L, creator, 10, 1);
         Enrollment enrollment = createConfirmedEnrollment(100L, student, course);
 
         when(userRepository.findById(student.getId()))
@@ -444,18 +445,19 @@ public class EnrollmentCommandServiceTest {
                 EnrollmentStatus.CONFIRMED,
                 EnrollmentStatus.CANCELLED
         )).thenReturn(1);
+        when(courseRepository.decreaseCapacityIfAvailable(course.getId()))
+                .thenReturn(1);
 
         // When
         enrollmentCommandService.cancel(student.getId(), enrollment.getId());
 
         // Then
-        assertThat(course.getCurrentCapacity()).isEqualTo(-1);
-
         verify(enrollmentRepository).cancelIfConfirmed(
                 enrollment.getId(),
                 EnrollmentStatus.CONFIRMED,
                 EnrollmentStatus.CANCELLED
         );
+        verify(courseRepository).decreaseCapacityIfAvailable(course.getId());
         verify(waitlistService).promoteNext(course);
     }
 
