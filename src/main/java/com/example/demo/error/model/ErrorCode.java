@@ -16,6 +16,7 @@ public enum ErrorCode {
 
     // BadRequest 400
     ALREADY_ENROLLED("이미 수강 신청한 강의입니다.", HttpStatus.BAD_REQUEST),
+    INVALID_CAPACITY_DECREASE("현재 수강 인원은 0 미만으로 감소할 수 없습니다.", HttpStatus.BAD_REQUEST),
     INVALID_COURSE_CLOSE_STATUS("모집 중인 강의만 마감할 수 있습니다.", HttpStatus.BAD_REQUEST),
     INVALID_ENROLLMENT_CANCEL_STATUS("결제 완료된 수강 신청만 취소할 수 있습니다.", HttpStatus.BAD_REQUEST),
     INVALID_CANCEL_PERIOD("결제 후 7일 이내에만 취소할 수 있습니다.", HttpStatus.BAD_REQUEST),
@@ -23,6 +24,7 @@ public enum ErrorCode {
     INVALID_SELF_ENROLLMENT("본인이 생성한 강의에는 수강 신청할 수 없습니다.", HttpStatus.BAD_REQUEST),
     INVALID_WAITLIST_PRIORITY("대기자가 존재하여 바로 결제할 수 없습니다. 대기열에 등록되었습니다.", HttpStatus.BAD_REQUEST),
     INVALID_ENROLLMENT_CONFIRM_STATUS("결제 대기 상태의 수강 신청만 확정할 수 있습니다.", HttpStatus.BAD_REQUEST),
+    ALREADY_CONFIRMED("이미 확정된 수강 신청입니다.", HttpStatus.BAD_REQUEST),
     INVALID_ENROLLMENT_OWNER("본인의 수강 신청만 접근할 수 있습니다.", HttpStatus.BAD_REQUEST),
     ALREADY_WAITING("이미 해당 강의의 대기열에 등록되어 있습니다.", HttpStatus.BAD_REQUEST),
     INVALID_ROLE("강의 생성은 강사만 가능합니다.", HttpStatus.BAD_REQUEST),

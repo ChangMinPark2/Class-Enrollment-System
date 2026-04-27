@@ -68,7 +68,15 @@ public class EnrollmentCommandService {
             return waitlistService.registerByConfirmFailure(user, course, enrollment);
         }
 
-        enrollment.confirm();
+        final int confirmedCount = enrollmentRepository.confirmIfPending(
+                enrollmentId,
+                EnrollmentStatus.PENDING,
+                EnrollmentStatus.CONFIRMED,
+                LocalDateTime.now()
+        );
+
+        validateConfirmSuccess(confirmedCount);
+
         waitlistService.completeIfPromoted(user, course);
 
         return new EnrollmentResponseDto(
@@ -98,8 +106,23 @@ public class EnrollmentCommandService {
 
         final Course course = enrollment.getCourse();
 
-        course.decreaseCapacity();
+        int decreasedCount = courseRepository.decreaseCapacityIfAvailable(course.getId());
+
+        validateDecreaseSuccess(decreasedCount);
+
         waitlistService.promoteNext(course);
+    }
+
+    private static void validateDecreaseSuccess(int decreasedCount) {
+        if (decreasedCount == 0) {
+            throw new BadRequestException(ErrorCode.INVALID_CAPACITY_DECREASE);
+        }
+    }
+
+    private static void validateConfirmSuccess(int confirmedCount) {
+        if (confirmedCount == 0) {
+            throw new BadRequestException(ErrorCode.ALREADY_CONFIRMED);
+        }
     }
 
     private boolean isFull(Course course) {
