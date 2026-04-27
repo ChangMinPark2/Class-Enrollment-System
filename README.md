@@ -49,8 +49,24 @@ cd Class-Enrollment-System
 
 ### 3. 테스트 실행
 
+서버가 실행 중인 상태에서 **새 터미널을 열어** 아래 명령어를 실행합니다.
+
 ```bash
 ./gradlew clean test
+```
+
+> 테스트는 H2 인메모리 DB를 직접 띄우는 방식으로 동작하므로, 서버 실행 여부와 관계없이 독립적으로 실행됩니다.
+
+테스트 결과 리포트는 아래 경로에서 확인할 수 있습니다.
+
+```
+build/reports/tests/test/index.html
+```
+
+Mac 환경에서는 다음 명령어로 바로 확인할 수 있습니다.
+
+```bash
+open build/reports/tests/test/index.html
 ```
 ---
 
