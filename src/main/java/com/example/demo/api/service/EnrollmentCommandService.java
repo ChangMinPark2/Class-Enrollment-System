@@ -7,7 +7,6 @@ import com.example.demo.api.persistence.entity.*;
 import com.example.demo.api.persistence.repository.CourseRepository;
 import com.example.demo.api.persistence.repository.EnrollmentRepository;
 import com.example.demo.api.persistence.repository.UserRepository;
-import com.example.demo.api.persistence.repository.WaitlistRepository;
 import com.example.demo.error.exception.BadRequestException;
 import com.example.demo.error.exception.NotFoundException;
 import com.example.demo.error.model.ErrorCode;
@@ -29,7 +28,6 @@ public class EnrollmentCommandService {
     public EnrollmentResponseDto create(EnrollmentCreateDto dto) {
         final User user = userRepository.findById(dto.userId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_USER));
-
         final Course course = courseRepository.findById(dto.courseId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_COURSE));
 
