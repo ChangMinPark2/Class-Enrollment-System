@@ -103,6 +103,94 @@ class EnrollmentReadServiceTest {
 
         verify(enrollmentRepository, never()).findAllByUser(any(User.class), any(Pageable.class));
     }
+
+    @Test
+    @DisplayName("강의 수강생 목록 조회 성공 - 강의 생성자는 확정된 수강생 목록을 조회할 수 있다")
+    void readStudentsByCourse_success() {
+        // Given
+        Enrollment enrollment1 = createConfirmedEnrollment(100L, student, course);
+        User student2 = createUser(3L, "학생2", Role.STUDENT);
+        Enrollment enrollment2 = createConfirmedEnrollment(101L, student2, course);
+
+        when(userRepository.findById(creator.getId()))
+                .thenReturn(Optional.of(creator));
+        when(courseRepository.findById(course.getId()))
+                .thenReturn(Optional.of(course));
+        when(enrollmentRepository.findAllByCourseAndEnrollmentStatus(
+                course,
+                EnrollmentStatus.CONFIRMED
+        )).thenReturn(List.of(enrollment1, enrollment2));
+
+        // When
+        CourseStudentReadAllDto response =
+                enrollmentReadService.readStudentsByCourse(creator.getId(), course.getId());
+
+        // Then
+        assertThat(response.students()).hasSize(2);
+
+        assertThat(response.students().get(0).userId()).isEqualTo(student.getId());
+        assertThat(response.students().get(0).userName()).isEqualTo(student.getName());
+        assertThat(response.students().get(0).enrollmentId()).isEqualTo(100L);
+        assertThat(response.students().get(0).status()).isEqualTo(EnrollmentStatus.CONFIRMED);
+        assertThat(response.students().get(0).confirmedAt()).isNotNull();
+
+        verify(enrollmentRepository).findAllByCourseAndEnrollmentStatus(
+                course,
+                EnrollmentStatus.CONFIRMED
+        );
+    }
+
+    @Test
+    @DisplayName("강의 수강생 목록 조회 실패 - 유저가 존재하지 않으면 예외가 발생한다")
+    void readStudentsByCourse_fail_user_not_found() {
+        // Given
+        when(userRepository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> enrollmentReadService.readStudentsByCourse(999L, course.getId()))
+                .isInstanceOf(NotFoundException.class);
+
+        verify(courseRepository, never()).findById(anyLong());
+        verify(enrollmentRepository, never())
+                .findAllByCourseAndEnrollmentStatus(any(Course.class), any(EnrollmentStatus.class));
+    }
+
+    @Test
+    @DisplayName("강의 수강생 목록 조회 실패 - 강의가 존재하지 않으면 예외가 발생한다")
+    void readStudentsByCourse_fail_course_not_found() {
+        // Given
+        when(userRepository.findById(creator.getId()))
+                .thenReturn(Optional.of(creator));
+        when(courseRepository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> enrollmentReadService.readStudentsByCourse(creator.getId(), 999L))
+                .isInstanceOf(NotFoundException.class);
+
+        verify(enrollmentRepository, never())
+                .findAllByCourseAndEnrollmentStatus(any(Course.class), any(EnrollmentStatus.class));
+    }
+
+    @Test
+    @DisplayName("강의 수강생 목록 조회 실패 - 강의 생성자가 아니면 예외가 발생한다")
+    void readStudentsByCourse_fail_invalid_course_owner() {
+        // Given
+        User otherUser = createUser(3L, "다른 유저", Role.STUDENT);
+
+        when(userRepository.findById(otherUser.getId()))
+                .thenReturn(Optional.of(otherUser));
+        when(courseRepository.findById(course.getId()))
+                .thenReturn(Optional.of(course));
+
+        // When & Then
+        assertThatThrownBy(() -> enrollmentReadService.readStudentsByCourse(otherUser.getId(), course.getId()))
+                .isInstanceOf(BadRequestException.class);
+
+        verify(enrollmentRepository, never())
+                .findAllByCourseAndEnrollmentStatus(any(Course.class), any(EnrollmentStatus.class));
+    }
     
     private User createUser(Long id, String name, Role role) {
         User user = User.create(name, role);
