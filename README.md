@@ -35,7 +35,7 @@
 ### 1. 프로젝트 클론
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/ChangMinPark2/Class-Enrollment-System.git
 cd <project-directory>
 ```
 
@@ -46,7 +46,6 @@ cd <project-directory>
 ```
 
 - 기본적으로 `localhost:8080`에서 서버가 실행됩니다.
-- 별도의 설정 없이도 `data.sql`을 통해 초기 데이터가 자동으로 세팅됩니다.
 
 ### 3. 테스트 실행
 
@@ -110,6 +109,7 @@ cd <project-directory>
 ### 수강 취소
 
 - 수강 신청 상태가 `CONFIRMED`인 경우에만 취소할 수 있습니다.
+- 결제 확정 후 **7일 이내**에만 취소할 수 있습니다.
 - 취소 성공 시 수강 신청 상태는 `CANCELLED`로 변경됩니다.
 - 취소 성공 시 강의의 `currentCapacity`가 감소합니다.
 - 한 사용자가 동일한 취소 요청을 여러 번 보내도 한 번만 취소됩니다.
