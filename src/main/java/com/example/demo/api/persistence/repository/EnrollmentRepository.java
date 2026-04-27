@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -29,6 +30,21 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
             @Param("enrollmentId") Long enrollmentId,
             @Param("confirmedStatus") EnrollmentStatus confirmedStatus,
             @Param("cancelledStatus") EnrollmentStatus cancelledStatus
+    );
+
+    @Modifying(flushAutomatically = true)
+    @Query("""
+        update Enrollment e
+        set e.enrollmentStatus = :confirmedStatus,
+            e.confirmedAt = :confirmedAt
+        where e.id = :enrollmentId
+        and e.enrollmentStatus = :pendingStatus
+        """)
+    int confirmIfPending(
+            @Param("enrollmentId") Long enrollmentId,
+            @Param("pendingStatus") EnrollmentStatus pendingStatus,
+            @Param("confirmedStatus") EnrollmentStatus confirmedStatus,
+            @Param("confirmedAt") LocalDateTime confirmedAt
     );
 
     Page<Enrollment> findAllByUser(User user, Pageable pageable);

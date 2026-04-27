@@ -19,8 +19,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -252,6 +255,12 @@ public class EnrollmentCommandServiceTest {
                 .thenReturn(false);
         when(courseRepository.increaseCapacityIfAvailable(course.getId()))
                 .thenReturn(1);
+        when(enrollmentRepository.confirmIfPending(
+                eq(enrollment.getId()),
+                eq(EnrollmentStatus.PENDING),
+                eq(EnrollmentStatus.CONFIRMED),
+                any(LocalDateTime.class)
+        )).thenReturn(1);
 
         // When
         EnrollmentResponseDto response =
@@ -260,9 +269,14 @@ public class EnrollmentCommandServiceTest {
         // Then
         assertThat(response.type()).isEqualTo(EnrollmentResult.CONFIRMED);
         assertThat(response.message()).isEqualTo(EnrollmentResult.CONFIRMED.getMessage());
-        assertThat(enrollment.getEnrollmentStatus()).isEqualTo(EnrollmentStatus.CONFIRMED);
-        assertThat(enrollment.getConfirmedAt()).isNotNull();
 
+        verify(courseRepository).increaseCapacityIfAvailable(course.getId());
+        verify(enrollmentRepository).confirmIfPending(
+                eq(enrollment.getId()),
+                eq(EnrollmentStatus.PENDING),
+                eq(EnrollmentStatus.CONFIRMED),
+                any(LocalDateTime.class)
+        );
         verify(waitlistService).completeIfPromoted(student, course);
         verify(waitlistService, never())
                 .registerByConfirmFailure(any(User.class), any(Course.class), any(Enrollment.class));
@@ -417,6 +431,12 @@ public class EnrollmentCommandServiceTest {
                 .thenReturn(true);
         when(courseRepository.increaseCapacityIfAvailable(course.getId()))
                 .thenReturn(1);
+        when(enrollmentRepository.confirmIfPending(
+                eq(enrollment.getId()),
+                eq(EnrollmentStatus.PENDING),
+                eq(EnrollmentStatus.CONFIRMED),
+                any(LocalDateTime.class)
+        )).thenReturn(1);
 
         // When
         EnrollmentResponseDto response =
@@ -424,8 +444,14 @@ public class EnrollmentCommandServiceTest {
 
         // Then
         assertThat(response.type()).isEqualTo(EnrollmentResult.CONFIRMED);
-        assertThat(enrollment.getEnrollmentStatus()).isEqualTo(EnrollmentStatus.CONFIRMED);
 
+        verify(courseRepository).increaseCapacityIfAvailable(course.getId());
+        verify(enrollmentRepository).confirmIfPending(
+                eq(enrollment.getId()),
+                eq(EnrollmentStatus.PENDING),
+                eq(EnrollmentStatus.CONFIRMED),
+                any(LocalDateTime.class)
+        );
         verify(waitlistService).completeIfPromoted(student, course);
     }
 
