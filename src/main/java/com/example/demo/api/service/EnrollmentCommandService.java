@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -25,32 +24,24 @@ public class EnrollmentCommandService {
     private final EnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
-    private final WaitlistRepository waitlistRepository;
+    private final WaitListService waitlistService;
 
     public EnrollmentResponseDto create(EnrollmentCreateDto dto) {
         final User user = userRepository.findById(dto.userId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_USER));
+
         final Course course = courseRepository.findById(dto.courseId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_COURSE));
 
         validateCourseOpen(course);
         validateAlreadyEnrolled(user, course);
-        validateAlreadyWaiting(user, course);
         validateNotCourseOwner(user, course);
 
-        if (isFull(course) || hasWaitingUser(course)) {
-            final Waitlist waitlist = Waitlist.create(user, course);
-
-            waitlistRepository.save(waitlist);
-
-            return new EnrollmentResponseDto(
-                    EnrollmentResult.WAITLIST,
-                    EnrollmentResult.WAITLIST.getMessage()
-            );
+        if (isFull(course) || waitlistService.hasWaitingUser(course)) {
+            return waitlistService.register(user, course);
         }
 
         final Enrollment enrollment = Enrollment.create(user, course);
-
         enrollmentRepository.save(enrollment);
 
         return new EnrollmentResponseDto(
@@ -68,53 +59,23 @@ public class EnrollmentCommandService {
 
         validateEnrollmentOwner(user, enrollment);
         validatePending(enrollment);
-        validateAlreadyWaiting(user, course);
 
-        if (hasWaitingUser(course) && !isPromotedUser(user, course)) {
-            enrollment.cancel();
-
-            final Waitlist waitlist = Waitlist.create(user, course);
-            waitlistRepository.save(waitlist);
-
-            return new EnrollmentResponseDto(
-                    EnrollmentResult.WAITLIST,
-                    EnrollmentResult.WAITLIST.getMessage()
-            );
+        if (waitlistService.hasWaitingUser(course) && !waitlistService.isPromotedUser(user, course)) {
+            return waitlistService.registerByConfirmFailure(user, course, enrollment);
         }
 
         final int updatedCount = courseRepository.increaseCapacityIfAvailable(course.getId());
 
         if (updatedCount == 0) {
-            enrollment.cancel();
-
-            final Waitlist waitlist = Waitlist.create(user, course);
-            waitlistRepository.save(waitlist);
-
-            return new EnrollmentResponseDto(
-                    EnrollmentResult.WAITLIST,
-                    EnrollmentResult.WAITLIST.getMessage()
-            );
+            return waitlistService.registerByConfirmFailure(user, course, enrollment);
         }
 
         enrollment.confirm();
-        completeWaitlistIfPromoted(user, course);
+        waitlistService.completeIfPromoted(user, course);
 
         return new EnrollmentResponseDto(
                 EnrollmentResult.CONFIRMED,
                 EnrollmentResult.CONFIRMED.getMessage()
-        );
-    }
-
-    private EnrollmentResponseDto registerWaitlist(User user, Course course, Enrollment enrollment) {
-        validateAlreadyWaiting(user, course);
-        enrollment.cancel();
-
-        final Waitlist waitlist = Waitlist.create(user, course);
-        waitlistRepository.save(waitlist);
-
-        return new EnrollmentResponseDto(
-                EnrollmentResult.WAITLIST,
-                EnrollmentResult.WAITLIST.getMessage()
         );
     }
 
@@ -140,65 +101,11 @@ public class EnrollmentCommandService {
         final Course course = enrollment.getCourse();
 
         course.decreaseCapacity();
-        promoteNextWaitlist(course);
-    }
-
-    private void promoteNextWaitlist(Course course) {
-        final Optional<Waitlist> optionalWaitlist =
-                waitlistRepository.findFirstByCourseAndWaitlistStatusOrderByCreatedAtAsc(
-                        course,
-                        WaitlistStatus.WAITING
-                );
-
-        if (optionalWaitlist.isEmpty()) {
-            return;
-        }
-
-        final Waitlist waitlist = optionalWaitlist.get();
-        final Enrollment enrollment = Enrollment.create(
-                waitlist.getUser(),
-                course
-        );
-
-        enrollmentRepository.save(enrollment);
-        waitlist.promote(LocalDateTime.now().plusMinutes(10));
+        waitlistService.promoteNext(course);
     }
 
     private boolean isFull(Course course) {
         return course.getCurrentCapacity() >= course.getMaxCapacity();
-    }
-
-    private boolean hasWaitingUser(Course course) {
-        return waitlistRepository.existsByCourseAndWaitlistStatus(
-                course,
-                WaitlistStatus.WAITING
-        );
-    }
-
-    private boolean isPromotedUser(User user, Course course) {
-        return waitlistRepository.existsByUserAndCourseAndWaitlistStatus(
-                user,
-                course,
-                WaitlistStatus.PROMOTED
-        );
-    }
-
-    private void completeWaitlistIfPromoted(User user, Course course) {
-        waitlistRepository.findByUserAndCourseAndWaitlistStatus(
-                user,
-                course,
-                WaitlistStatus.PROMOTED
-        ).ifPresent(Waitlist::complete);
-    }
-
-    private void validateAlreadyWaiting(User user, Course course) {
-        if (waitlistRepository.existsByUserAndCourseAndWaitlistStatus(
-                user,
-                course,
-                WaitlistStatus.WAITING
-        )) {
-            throw new BadRequestException(ErrorCode.ALREADY_WAITING);
-        }
     }
 
     private void validateConfirmed(Enrollment enrollment) {
