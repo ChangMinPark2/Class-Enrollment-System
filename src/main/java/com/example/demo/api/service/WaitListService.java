@@ -53,7 +53,7 @@ public class WaitListService {
                 EnrollmentResult.WAITLIST.getMessage()
         );
     }
-
+    //이부분
     public void promoteNext(Course course) {
         final Optional<Waitlist> optionalWaitlist =
                 waitlistRepository.findFirstByCourseAndWaitlistStatusOrderByCreatedAtAsc(
@@ -73,7 +73,7 @@ public class WaitListService {
 
         enrollmentRepository.save(enrollment);
 
-        waitlist.promote(LocalDateTime.now().plusMinutes(1));
+        waitlist.promote(LocalDateTime.now().plusMinutes(10));
         log.info("Waitlist promoted - userId: {}, courseId: {}, expiresAt: {}",
                 waitlist.getUser().getId(),
                 course.getId(),

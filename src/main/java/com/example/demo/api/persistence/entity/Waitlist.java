@@ -7,7 +7,15 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Table(name = "tbl_waitlist")
+@Table(
+        name = "tbl_waitlist",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_waitlist_user_course_status",
+                        columnNames = {"user_id", "course_id", "waitlist_status"}
+                )
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Waitlist {
     @Id
