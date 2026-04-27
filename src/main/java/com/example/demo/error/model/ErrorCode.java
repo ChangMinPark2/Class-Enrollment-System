@@ -16,6 +16,7 @@ public enum ErrorCode {
 
     // BadRequest 400
     ALREADY_ENROLLED("이미 수강 신청한 강의입니다.", HttpStatus.BAD_REQUEST),
+    INVALID_CAPACITY_DECREASE("현재 수강 인원은 0 미만으로 감소할 수 없습니다.", HttpStatus.BAD_REQUEST),
     INVALID_COURSE_CLOSE_STATUS("모집 중인 강의만 마감할 수 있습니다.", HttpStatus.BAD_REQUEST),
     INVALID_ENROLLMENT_CANCEL_STATUS("결제 완료된 수강 신청만 취소할 수 있습니다.", HttpStatus.BAD_REQUEST),
     INVALID_CANCEL_PERIOD("결제 후 7일 이내에만 취소할 수 있습니다.", HttpStatus.BAD_REQUEST),

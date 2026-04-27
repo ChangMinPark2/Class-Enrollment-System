@@ -98,8 +98,17 @@ public class EnrollmentCommandService {
 
         final Course course = enrollment.getCourse();
 
-        course.decreaseCapacity();
+        int decreasedCount = courseRepository.decreaseCapacityIfAvailable(course.getId());
+
+        validateDecreaseSuccess(decreasedCount);
+
         waitlistService.promoteNext(course);
+    }
+
+    private static void validateDecreaseSuccess(int decreasedCount) {
+        if (decreasedCount == 0) {
+            throw new BadRequestException(ErrorCode.INVALID_CAPACITY_DECREASE);
+        }
     }
 
     private boolean isFull(Course course) {

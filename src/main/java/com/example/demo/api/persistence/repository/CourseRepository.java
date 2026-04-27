@@ -22,4 +22,13 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
         and c.currentCapacity < c.maxCapacity
         """)
     int increaseCapacityIfAvailable(@Param("courseId") Long courseId);
+
+    @Modifying(flushAutomatically = true)
+    @Query("""
+    update Course c
+    set c.currentCapacity = c.currentCapacity - 1
+    where c.id = :courseId
+    and c.currentCapacity > 0
+    """)
+    int decreaseCapacityIfAvailable(@Param("courseId") Long courseId);
 }
