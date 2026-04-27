@@ -1,10 +1,13 @@
 package com.example.demo.api.service;
 
 import com.example.demo.api.dto.enrollment.EnrollmentCreateDto;
+import com.example.demo.api.dto.enrollment.EnrollmentCreateResponseDto;
+import com.example.demo.api.dto.enrollment.EnrollmentResponse;
 import com.example.demo.api.persistence.entity.*;
 import com.example.demo.api.persistence.repository.CourseRepository;
 import com.example.demo.api.persistence.repository.EnrollmentRepository;
 import com.example.demo.api.persistence.repository.UserRepository;
+import com.example.demo.api.persistence.repository.WaitlistRepository;
 import com.example.demo.error.exception.BadRequestException;
 import com.example.demo.error.exception.NotFoundException;
 import com.example.demo.error.model.ErrorCode;
@@ -21,21 +24,38 @@ public class EnrollmentCommandService {
     private final EnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
+    private final WaitlistRepository waitlistRepository;
 
-    public void create(EnrollmentCreateDto dto) {
+    public EnrollmentCreateResponseDto create(EnrollmentCreateDto dto) {
         final User user = userRepository.findById(dto.userId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_USER));
         final Course course = courseRepository.findById(dto.courseId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.FAIL_NOT_COURSE));
 
         validateCourseOpen(course);
-        validateCapacity(course);
-        validateAlreadyEnrolled(user, course); 
+        validateAlreadyEnrolled(user, course);
+        validateAlreadyWaiting(user, course);
         validateNotCourseOwner(user, course);
+
+        if (isFull(course) || hasWaitingUser(course)) {
+            final Waitlist waitlist = Waitlist.create(user, course);
+
+            waitlistRepository.save(waitlist);
+
+            return new EnrollmentCreateResponseDto(
+                    EnrollmentResponse.WAITLIST,
+                    EnrollmentResponse.WAITLIST.getMessage()
+            );
+        }
 
         final Enrollment enrollment = Enrollment.create(user, course);
 
         enrollmentRepository.save(enrollment);
+
+        return new EnrollmentCreateResponseDto(
+                EnrollmentResponse.ENROLLMENT,
+                EnrollmentResponse.ENROLLMENT.getMessage()
+        );
     }
 
     public void confirm(Long userId, Long enrollmentId) {
@@ -75,6 +95,27 @@ public class EnrollmentCommandService {
         validateCancelSuccess(cancelledCount);
 
         enrollment.getCourse().decreaseCapacity();
+    }
+
+    private boolean isFull(Course course) {
+        return course.getCurrentCapacity() >= course.getMaxCapacity();
+    }
+
+    private boolean hasWaitingUser(Course course) {
+        return waitlistRepository.existsByCourseAndWaitlistStatus(
+                course,
+                WaitlistStatus.WAITING
+        );
+    }
+
+    private void validateAlreadyWaiting(User user, Course course) {
+        if (waitlistRepository.existsByUserAndCourseAndWaitlistStatus(
+                user,
+                course,
+                WaitlistStatus.WAITING
+        )) {
+            throw new BadRequestException(ErrorCode.ALREADY_WAITING);
+        }
     }
 
     private void validateConfirmed(Enrollment enrollment) {
