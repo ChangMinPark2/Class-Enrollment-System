@@ -619,12 +619,28 @@ tbl_course                   tbl_enrollment
 
 ## 🧪 테스트 실행 방법
 
-전체 테스트는 다음 명령어로 실행할 수 있습니다.
+### API 테스트
+
+아래 명령어로 서버를 실행한 뒤 Postman으로 API를 호출할 수 있습니다.
+
+```bash
+./gradlew bootRun
+```
+
+> [!IMPORTANT]
+> 서버 실행 후 `80% EXECUTING` 상태에서 멈춘 것처럼 보이지만 정상입니다. 터미널에 `Started DemoApplication` 로그가 찍히면 `http://localhost:8080` 으로 API 호출이 가능합니다.
+
+---
+
+### 테스트 코드 실행
+
+서버가 실행 중인 상태에서 **새 터미널을 열어** 아래 명령어를 실행합니다.
 
 ```bash
 ./gradlew clean test
 ```
 
+> 테스트는 H2 인메모리 DB를 직접 띄우는 방식으로 동작하므로, 서버 실행 여부와 관계없이 독립적으로 실행됩니다.
 ---
 
 ### 단위 테스트
