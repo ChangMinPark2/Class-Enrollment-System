@@ -8,12 +8,14 @@ import com.example.demo.api.persistence.repository.WaitlistRepository;
 import com.example.demo.error.exception.BadRequestException;
 import com.example.demo.error.model.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -70,6 +72,11 @@ public class WaitListService {
         enrollmentRepository.save(enrollment);
 
         waitlist.promote(LocalDateTime.now().plusMinutes(10));
+        log.info("Waitlist promoted - userId: {}, courseId: {}, expiresAt: {}",
+                waitlist.getUser().getId(),
+                course.getId(),
+                waitlist.getExpiresAt()
+        );
     }
 
     public boolean isPromotedUser(User user, Course course) {
