@@ -9,10 +9,12 @@ import com.example.demo.error.exception.BadRequestException;
 import com.example.demo.error.model.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -71,12 +73,36 @@ public class WaitListService {
 
         enrollmentRepository.save(enrollment);
 
-        waitlist.promote(LocalDateTime.now().plusMinutes(10));
+        waitlist.promote(LocalDateTime.now().plusMinutes(1));
         log.info("Waitlist promoted - userId: {}, courseId: {}, expiresAt: {}",
                 waitlist.getUser().getId(),
                 course.getId(),
                 waitlist.getExpiresAt()
         );
+    }
+
+    @Scheduled(fixedDelay = 60000)
+    @Transactional
+    public void expirePromotedWaitlist() {
+        List<Waitlist> expiredList =
+                waitlistRepository.findAllByWaitlistStatusAndExpiresAtBefore(
+                        WaitlistStatus.PROMOTED,
+                        LocalDateTime.now()
+                );
+
+        for (Waitlist waitlist : expiredList) {
+            waitlist.expire();
+
+            log.info("Waitlist expired - userId: {}, courseId: {}, expiredAt: {}",
+                    waitlist.getUser().getId(),
+                    waitlist.getCourse().getId(),
+                    LocalDateTime.now()
+            );
+
+            Course course = waitlist.getCourse();
+
+            promoteNext(course);
+        }
     }
 
     public boolean isPromotedUser(User user, Course course) {

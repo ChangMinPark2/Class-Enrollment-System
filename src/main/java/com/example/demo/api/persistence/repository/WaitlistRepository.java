@@ -6,6 +6,8 @@ import com.example.demo.api.persistence.entity.Waitlist;
 import com.example.demo.api.persistence.entity.WaitlistStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface WaitlistRepository extends JpaRepository<Waitlist, Long> {
@@ -29,5 +31,10 @@ public interface WaitlistRepository extends JpaRepository<Waitlist, Long> {
             User user,
             Course course,
             WaitlistStatus waitlistStatus
+    );
+
+    List<Waitlist> findAllByWaitlistStatusAndExpiresAtBefore(
+            WaitlistStatus status,
+            LocalDateTime now
     );
 }

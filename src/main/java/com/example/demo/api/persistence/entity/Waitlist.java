@@ -53,7 +53,6 @@ public class Waitlist {
         this.expiresAt = expiresAt;
     }
 
-    // 생성
     public static Waitlist create(User user, Course course) {
         return Waitlist.builder()
                 .user(user)
@@ -63,24 +62,16 @@ public class Waitlist {
                 .build();
     }
 
-    // 승격
     public void promote(LocalDateTime expiresAt) {
         this.waitlistStatus = WaitlistStatus.PROMOTED;
         this.promotedAt = LocalDateTime.now();
         this.expiresAt = expiresAt;
     }
 
-    // 만료
     public void expire() {
         this.waitlistStatus = WaitlistStatus.EXPIRED;
     }
 
-    // 취소
-    public void cancel() {
-        this.waitlistStatus = WaitlistStatus.CANCELLED;
-    }
-
-    // 완료 (결제 성공 시)
     public void complete() {
         this.waitlistStatus = WaitlistStatus.COMPLETED;
     }
